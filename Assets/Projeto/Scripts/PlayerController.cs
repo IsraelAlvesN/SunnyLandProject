@@ -6,27 +6,46 @@ public class PlayerController : MonoBehaviour
 {
     private Animator playerAnimator;
     private Rigidbody2D playerRB;
+    private GameManager _gameManager;
     [SerializeField] Transform groundCheck;
     [SerializeField] bool isGround = false;
     [SerializeField] public float speed;
     [SerializeField] public float touchRun = 0.0f;
     [SerializeField] public bool facingRight = true;
+    [SerializeField] public bool jump = false;
+    [SerializeField] public int numberJumps = 0;
+    [SerializeField] public int maxJump = 2;
+    [SerializeField] public float jumpForce;
 
     void Start()
     {
         playerAnimator = GetComponent<Animator>();
         playerRB = GetComponent<Rigidbody2D>();
+        _gameManager = FindObjectOfType(typeof(GameManager)) as GameManager;
     }
 
     void Update()
     {
+        isGround = Physics2D.Linecast(transform.position, groundCheck.position, 1 << LayerMask.NameToLayer("Ground")); //line between player and groundCheck
+        playerAnimator.SetBool("bIsGrounded", isGround);
+
         touchRun = Input.GetAxisRaw("Horizontal");
+        if (Input.GetButtonDown("Jump"))
+        {
+            jump = true;
+        }
+
         SetState();
     }
 
     private void FixedUpdate()
     {
         MovePlayer(touchRun);
+
+        if (jump)
+        {
+            JumpPlayer();
+        }
     }
 
     private void MovePlayer(float moveH)
@@ -48,8 +67,37 @@ public class PlayerController : MonoBehaviour
         transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
     }
 
+    void JumpPlayer()
+    {
+        if (isGround)
+        {
+            numberJumps = 0;
+        }
+
+        if (isGround || numberJumps < maxJump)
+        {
+            playerRB.AddForce(new Vector2(0f, jumpForce));
+            isGround = false;
+            numberJumps++;
+        }
+
+        jump = false;
+    }
+
     void SetState()
     {
-        playerAnimator.SetBool("bWalk", playerRB.velocity.x != 0); //if rb > 0, player is moving
+        playerAnimator.SetBool("bWalk", playerRB.velocity.x != 0 && isGround); //if rb > 0, player is moving and isGrounnd true
+        playerAnimator.SetBool("bJump", !isGround);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Collectable":
+                _gameManager.Points(1);
+                Destroy(collision.gameObject);
+                break;
+        }
     }
 }
