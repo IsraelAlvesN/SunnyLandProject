@@ -17,6 +17,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public int maxJump = 2;
     [SerializeField] public float jumpForce;
 
+    //Audio
+    public AudioSource fxGame;
+    public AudioClip fxJump;
+
     void Start()
     {
         playerAnimator = GetComponent<Animator>();
@@ -33,6 +37,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetButtonDown("Jump"))
         {
             jump = true;
+            
         }
 
         SetState();
@@ -79,6 +84,9 @@ public class PlayerController : MonoBehaviour
             playerRB.AddForce(new Vector2(0f, jumpForce));
             isGround = false;
             numberJumps++;
+
+            //som do pulo
+            fxGame.PlayOneShot(fxJump);
         }
 
         jump = false;
