@@ -11,6 +11,12 @@ public class GameManager : MonoBehaviour
     //Audio
     public AudioSource fxGame;
     public AudioClip fxCarrot;
+    public AudioClip fxExplosion;
+    //Life
+    public Sprite[] imgLife;
+    public Image lifeBar;
+
+    public GameObject hitPrefab;
 
     public void Points(int qtdPontos)
     {
@@ -18,5 +24,10 @@ public class GameManager : MonoBehaviour
         fxGame.PlayOneShot(fxCarrot);
         score += qtdPontos;
         txtScore.text = score.ToString();
+    }
+
+    public void LifeBar(int healthLife)
+    {
+        lifeBar.sprite = imgLife[healthLife];
     }
 }

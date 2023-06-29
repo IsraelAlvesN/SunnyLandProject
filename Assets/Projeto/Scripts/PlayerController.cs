@@ -7,15 +7,20 @@ public class PlayerController : MonoBehaviour
     private Animator playerAnimator;
     private Rigidbody2D playerRB;
     private GameManager _gameManager;
-    [SerializeField] Transform groundCheck;
-    [SerializeField] bool isGround = false;
-    [SerializeField] public float speed;
-    [SerializeField] public float touchRun = 0.0f;
-    [SerializeField] public bool facingRight = true;
-    [SerializeField] public bool jump = false;
-    [SerializeField] public int numberJumps = 0;
-    [SerializeField] public int maxJump = 2;
-    [SerializeField] public float jumpForce;
+    private SpriteRenderer srPlayer;
+    private bool isInvincible = false;
+    public Transform groundCheck;
+    bool isGround = false;
+    public float speed;
+    public float touchRun = 0.0f;
+    public bool facingRight = true;
+    public bool jump = false;
+    public int numberJumps = 0;
+    public int maxJump = 2;
+    public float jumpForce;
+    public int lives = 3;
+    public Color hitColor;
+    public Color nohitColor;
 
     //Audio
     public AudioSource fxGame;
@@ -25,6 +30,7 @@ public class PlayerController : MonoBehaviour
     {
         playerAnimator = GetComponent<Animator>();
         playerRB = GetComponent<Rigidbody2D>();
+        srPlayer = GetComponent<SpriteRenderer>();
         _gameManager = FindObjectOfType(typeof(GameManager)) as GameManager;
     }
 
@@ -106,6 +112,61 @@ public class PlayerController : MonoBehaviour
                 _gameManager.Points(1);
                 Destroy(collision.gameObject);
                 break;
+            case "Enemy":
+                //explosion animation
+                GameObject tempExplosion = Instantiate(_gameManager.hitPrefab, transform.position, transform.localRotation);
+                Destroy(tempExplosion, 0.4f);
+
+                //add force to jump when enemy dies
+                Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(new Vector2(0, 600));
+                //explosion sound
+                _gameManager.fxGame.PlayOneShot(_gameManager.fxExplosion);
+
+                Destroy(collision.gameObject);
+                break;
+
         }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Enemy":
+                Hurt();
+                break;
+        }
+    }
+
+    void Hurt()
+    {
+        if (!isInvincible)
+        {
+            isInvincible = true;
+
+            lives--;
+            StartCoroutine("Damage");
+            _gameManager.LifeBar(lives);
+        }
+        
+    }
+
+    //when player suffers damage
+    IEnumerator Damage()
+    {
+        srPlayer.color = nohitColor;
+        yield return new WaitForSeconds(0.1f);
+
+        for (float i = 0; i < 1; i += 0.1f)
+        {
+            srPlayer.enabled = false;
+            yield return new WaitForSeconds(0.1f);
+            srPlayer.enabled = true;
+            yield return new WaitForSeconds(0.1f);
+        }
+        srPlayer.color = Color.white;
+        isInvincible = false;
     }
 }
