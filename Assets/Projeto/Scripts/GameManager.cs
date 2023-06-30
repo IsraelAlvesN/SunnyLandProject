@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public AudioSource fxGame;
     public AudioClip fxCarrot;
     public AudioClip fxExplosion;
+    public AudioClip fxDead;
     //Life
     public Sprite[] imgLife;
     public Image lifeBar;

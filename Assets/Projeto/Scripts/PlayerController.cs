@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class PlayerController : MonoBehaviour
     private GameManager _gameManager;
     private SpriteRenderer srPlayer;
     private bool isInvincible = false;
+    public GameObject playerDie;
     public Transform groundCheck;
     bool isGround = false;
     public float speed;
@@ -137,6 +139,20 @@ public class PlayerController : MonoBehaviour
             case "Enemy":
                 Hurt();
                 break;
+            case "Platform":
+                //to make player a platform children
+                this.transform.parent = collision.transform;
+                break;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Platform":
+                this.transform.parent = null;
+                break;
         }
     }
 
@@ -149,6 +165,18 @@ public class PlayerController : MonoBehaviour
             lives--;
             StartCoroutine("Damage");
             _gameManager.LifeBar(lives);
+
+            if(lives < 1)  
+            {
+                //jumping die effect
+                GameObject pDieTenp = Instantiate(playerDie, transform.position, Quaternion.identity);
+                Rigidbody2D rbDie = pDieTenp.GetComponent<Rigidbody2D>();
+                rbDie.AddForce(new Vector2(150f, 500f));
+                _gameManager.fxGame.PlayOneShot(_gameManager.fxDead);
+
+                Invoke("LoadGame", 4f);
+                gameObject.SetActive(false);
+            }
         }
         
     }
@@ -168,5 +196,10 @@ public class PlayerController : MonoBehaviour
         }
         srPlayer.color = Color.white;
         isInvincible = false;
+    }
+
+    void LoadGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
