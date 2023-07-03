@@ -16,13 +16,16 @@ public class PlayerController : MonoBehaviour
     public float speed;
     public float touchRun = 0.0f;
     public bool facingRight = true;
+    public int lives = 3;
+    public Color hitColor;
+    public Color nohitColor;
+    public ParticleSystem _dust;
+    //jump
     public bool jump = false;
     public int numberJumps = 0;
     public int maxJump = 2;
     public float jumpForce;
-    public int lives = 3;
-    public Color hitColor;
-    public Color nohitColor;
+    
 
     //Audio
     public AudioSource fxGame;
@@ -73,6 +76,7 @@ public class PlayerController : MonoBehaviour
 
     void Flip()
     {
+        createDust();
         facingRight = !facingRight;
         //Vector3 scale = transform.localScale;
         //scale.x *= -1;
@@ -85,6 +89,7 @@ public class PlayerController : MonoBehaviour
         if (isGround)
         {
             numberJumps = 0;
+            createDust();
         }
 
         if (isGround || numberJumps < maxJump)
@@ -95,6 +100,7 @@ public class PlayerController : MonoBehaviour
 
             //som do pulo
             fxGame.PlayOneShot(fxJump);
+            createDust();
         }
 
         jump = false;
@@ -201,5 +207,10 @@ public class PlayerController : MonoBehaviour
     void LoadGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    void createDust()
+    {
+        _dust.Play();
     }
 }
